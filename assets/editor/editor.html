@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- Offline cache policy — no network requests needed -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>MiniWiki Editor</title>
+<style>
+:root {
+  --bg: #ffffff; --text: #1a1a1a; --placeholder: #aaa;
+  --code-bg: #f5f5f5; --quote-border: #d0d0d0; --quote-text: #555; --hr: #e0e0e0;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1e1e1e; --text: #e0e0e0; --placeholder: #666;
+    --code-bg: #2a2a2a; --quote-border: #444; --quote-text: #aaa; --hr: #333; }
+}
+html.dark { --bg: #1e1e1e; --text: #e0e0e0; --placeholder: #666;
+  --code-bg: #2a2a2a; --quote-border: #444; --quote-text: #aaa; --hr: #333; }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; background: var(--bg); color: var(--text);
+  font-family: -apple-system, 'Pretendard', BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+
+#editor {
+  min-height: 100vh; padding: 16px 20px; outline: none;
+  font-size: 16px; line-height: 1.7; word-wrap: break-word;
+  white-space: pre-wrap;
+}
+#editor.is-empty::before {
+  content: attr(data-placeholder); color: var(--placeholder); font-style: italic;
+  pointer-events: none; display: block; height: 0;
+}
+#editor h1 { font-size: 1.8em; font-weight: 700; margin: 0.8em 0 0.3em; }
+#editor h2 { font-size: 1.4em; font-weight: 600; margin: 0.6em 0 0.3em; }
+#editor h3 { font-size: 1.15em; font-weight: 600; margin: 0.5em 0 0.2em; }
+#editor p { margin: 0.4em 0; }
+#editor strong { font-weight: 700; }
+#editor em { font-style: italic; }
+#editor code { background: var(--code-bg); border-radius: 4px; padding: 0.1em 0.4em;
+  font-family: 'SF Mono', Menlo, monospace; font-size: 0.9em; }
+#editor pre { background: var(--code-bg); border-radius: 8px; padding: 12px 16px;
+  margin: 0.8em 0; overflow-x: auto; }
+#editor pre code { background: none; padding: 0; font-size: 0.875em; }
+#editor blockquote { border-left: 3px solid var(--quote-border); padding-left: 16px;
+  margin: 0.8em 0; color: var(--quote-text); }
+#editor ul, #editor ol { padding-left: 24px; margin: 0.5em 0; }
+#editor li { margin: 0.2em 0; }
+#editor hr { border: none; border-top: 2px solid var(--hr); margin: 1.5em 0; }
+
+/* Toolbar */
+#toolbar {
+  position: sticky; top: 0; z-index: 50; background: var(--bg);
+  border-bottom: 1px solid var(--hr); padding: 6px 12px;
+  display: flex; flex-wrap: wrap; gap: 2px; user-select: none;
+}
+.tb-group { display: flex; align-items: center; gap: 2px; padding-right: 8px;
+  margin-right: 8px; border-right: 1px solid var(--hr); }
+.tb-group:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+.tb-btn { background: none; border: none; color: var(--text); cursor: pointer;
+  padding: 4px 8px; font-size: 13px; font-weight: 500; border-radius: 4px;
+  font-family: inherit; transition: background 0.15s; }
+.tb-btn:hover { background: var(--code-bg); }
+.tb-btn.active { background: var(--code-bg); color: #2E7353; font-weight: 700; }
+@media (max-width: 500px) { .tb-btn { padding: 3px 5px; font-size: 12px; } }
+
+/* Character counter */
+#char-counter {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 4px 20px; font-size: 12px; color: var(--placeholder);
+  background: var(--bg); border-top: 1px solid var(--hr);
+  display: flex; justify-content: space-between; align-items: center;
+  z-index: 10; user-select: none;
+}
+#char-counter .help-btn {
+  cursor: pointer; padding: 2px 8px; border-radius: 4px;
+  background: var(--code-bg); font-size: 11px; color: var(--text);
+  border: none; opacity: 0.7; transition: opacity 0.2s;
+}
+#char-counter .help-btn:hover { opacity: 1; }
+
+/* Keyboard shortcuts help panel */
+#shortcuts-help {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 100;
+  justify-content: center; align-items: center;
+}
+#shortcuts-help.visible { display: flex; }
+#shortcuts-help .panel {
+  background: var(--bg); border-radius: 12px; padding: 24px 28px;
+  max-width: 380px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid var(--hr);
+}
+#shortcuts-help .panel h3 {
+  font-size: 15px; font-weight: 700; margin-bottom: 12px;
+  color: var(--text);
+}
+#shortcuts-help .shortcut-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 13px; color: var(--text);
+}
+#shortcuts-help .shortcut-row:not(:last-child) {
+  border-bottom: 1px solid var(--hr);
+}
+#shortcuts-help kbd {
+  background: var(--code-bg); border: 1px solid var(--hr);
+  border-radius: 4px; padding: 2px 6px; font-family: 'SF Mono', Menlo, monospace;
+  font-size: 12px; color: var(--text);
+}
+#shortcuts-help .close-btn {
+  display: block; margin: 16px auto 0; padding: 6px 20px;
+  background: var(--code-bg); border: 1px solid var(--hr);
+  border-radius: 6px; color: var(--text); cursor: pointer; font-size: 13px;
+}
+#shortcuts-help .close-btn:hover { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="bold" title="Bold (Cmd+B)"><b>B</b></button>
+    <button class="tb-btn" data-cmd="italic" title="Italic (Cmd+I)"><i>I</i></button>
+    <button class="tb-btn" data-cmd="underline" title="Underline (Cmd+U)"><u>U</u></button>
+    <button class="tb-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-block="H1" title="Heading 1">H1</button>
+    <button class="tb-btn" data-block="H2" title="Heading 2">H2</button>
+    <button class="tb-btn" data-block="H3" title="Heading 3">H3</button>
+    <button class="tb-btn" data-block="P" title="Paragraph">P</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="insertUnorderedList" title="Bullet list">&#8226; List</button>
+    <button class="tb-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+    <button class="tb-btn" data-block="BLOCKQUOTE" title="Quote">&ldquo; Quote</button>
+  </div>
+  <div class="tb-group">
+    <button class="tb-btn" data-cmd="insertHorizontalRule" title="Horizontal rule">&#8213;</button>
+    <button class="tb-btn" data-special="code" title="Inline code">&lt;/&gt;</button>
+  </div>
+</div>
+
+<div id="editor" contenteditable="true" data-placeholder="Start writing..." style="padding-bottom: 40px;"></div>
+
+<!-- Character counter bar -->
+<div id="char-counter">
+  <span id="counter-text">0 characters</span>
+  <button class="help-btn" id="help-toggle" title="Keyboard shortcuts (Cmd+/)">Shortcuts</button>
+</div>
+
+<!-- Keyboard shortcuts help overlay -->
+<div id="shortcuts-help">
+  <div class="panel">
+    <h3>Keyboard Shortcuts</h3>
+    <div class="shortcut-row"><span>Bold</span><kbd>Cmd+B</kbd></div>
+    <div class="shortcut-row"><span>Italic</span><kbd>Cmd+I</kbd></div>
+    <div class="shortcut-row"><span>Underline</span><kbd>Cmd+U</kbd></div>
+    <div class="shortcut-row"><span>Heading 1</span><span><kbd>#</kbd> + Space</span></div>
+    <div class="shortcut-row"><span>Heading 2</span><span><kbd>##</kbd> + Space</span></div>
+    <div class="shortcut-row"><span>Heading 3</span><span><kbd>###</kbd> + Space</span></div>
+    <div class="shortcut-row"><span>Horizontal rule</span><span><kbd>---</kbd></span></div>
+    <div class="shortcut-row"><span>Show shortcuts</span><kbd>Cmd+/</kbd></div>
+    <button class="close-btn" id="shortcuts-close">Close</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var editor = document.getElementById('editor');
+  var debounceTimer = null;
+
+  // Inline HTML sanitizer — strip dangerous tags/attributes without CDN
+  var SAFE_TAGS = ['P','H1','H2','H3','STRONG','EM','CODE','PRE','BLOCKQUOTE',
+    'UL','OL','LI','HR','BR','DIV','SPAN','A','U','S','SUB','SUP'];
+  var SAFE_ATTRS = ['class','href','style'];
+
+  function sanitizeHTML(html) {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var walker = doc.body.querySelectorAll('*');
+    for (var i = 0; i < walker.length; i++) {
+      var el = walker[i];
+      if (SAFE_TAGS.indexOf(el.tagName) === -1) {
+        el.replaceWith(document.createTextNode(el.textContent));
+        continue;
+      }
+      var attrs = Array.from(el.attributes);
+      for (var j = 0; j < attrs.length; j++) {
+        if (SAFE_ATTRS.indexOf(attrs[j].name) === -1) el.removeAttribute(attrs[j].name);
+      }
+      // Strip javascript: URLs
+      if (el.hasAttribute('href') && /^\s*javascript:/i.test(el.getAttribute('href'))) {
+        el.removeAttribute('href');
+      }
+    }
+    return doc.body.innerHTML;
+  }
+
+  function notifyFlutter() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function() {
+      try {
+        if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+          var clean = sanitizeHTML(editor.innerHTML);
+          window.flutter_inappwebview.callHandler('onContentChanged', clean);
+        }
+      } catch(e) {}
+    }, 300);
+  }
+
+  function updatePlaceholder() {
+    var text = editor.innerText.replace(/\n/g, '').trim();
+    editor.classList.toggle('is-empty', text.length === 0);
+  }
+
+  // Handle paste — strip external HTML formatting, keep plain text
+  editor.addEventListener('paste', function(e) {
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    if (text) {
+      document.execCommand('insertText', false, text);
+      updatePlaceholder();
+      updateCharCount();
+      notifyFlutter();
+    }
+  });
+
+  // Listen for input events (covers typing, paste, delete, IME composing)
+  editor.addEventListener('input', function() {
+    updatePlaceholder();
+    updateCharCount();
+    notifyFlutter();
+  });
+
+  // Handle Enter key to create proper paragraphs
+  editor.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      // Insert line break for simple editing
+      // Default contenteditable behavior handles this
+    }
+  });
+
+  // Handle Markdown shortcuts on input
+  editor.addEventListener('input', function(e) {
+    if (e.inputType !== 'insertText') return;
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var node = sel.anchorNode;
+    if (!node || node.nodeType !== 3) return;
+    var text = node.textContent;
+
+    // Heading: # at start of line
+    if (/^#{1,3}\s/.test(text)) {
+      var level = text.match(/^(#{1,3})\s/)[1].length;
+      var content = text.replace(/^#{1,3}\s/, '');
+      var heading = document.createElement('h' + level);
+      heading.textContent = content || '\u200B';
+      var parent = node.parentNode;
+      if (parent === editor || parent.tagName === 'DIV' || parent.tagName === 'P') {
+        var target = parent === editor ? node : parent;
+        if (parent === editor) {
+          var wrapper = document.createElement('h' + level);
+          wrapper.textContent = content || '\u200B';
+          node.parentNode.replaceChild(wrapper, node);
+        } else {
+          parent.replaceWith(heading);
+        }
+        // Place cursor at end
+        var range = document.createRange();
+        range.selectNodeContents(heading);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    // Horizontal rule: ---
+    if (text.trim() === '---') {
+      var hr = document.createElement('hr');
+      var p = document.createElement('p');
+      p.innerHTML = '<br>';
+      var parent = node.parentNode;
+      var target = parent === editor ? node : parent;
+      editor.insertBefore(hr, target);
+      editor.insertBefore(p, target.nextSibling || null);
+      target.remove();
+      var range = document.createRange();
+      range.selectNodeContents(p);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  });
+
+  // Character counter
+  var counterText = document.getElementById('counter-text');
+  function updateCharCount() {
+    var text = editor.innerText || '';
+    var len = text.replace(/\u200B/g, '').trim().length;
+    counterText.textContent = len + ' characters';
+  }
+
+  // Shortcuts help panel
+  var shortcutsHelp = document.getElementById('shortcuts-help');
+  function toggleShortcuts() {
+    shortcutsHelp.classList.toggle('visible');
+  }
+  document.getElementById('help-toggle').addEventListener('click', toggleShortcuts);
+  document.getElementById('shortcuts-close').addEventListener('click', toggleShortcuts);
+  shortcutsHelp.addEventListener('click', function(e) {
+    if (e.target === shortcutsHelp) toggleShortcuts();
+  });
+
+  // Toolbar button handling
+  document.getElementById('toolbar').addEventListener('mousedown', function(e) {
+    e.preventDefault(); // prevent editor blur
+    var btn = e.target.closest('.tb-btn');
+    if (!btn) return;
+    var cmd = btn.getAttribute('data-cmd');
+    var block = btn.getAttribute('data-block');
+    var special = btn.getAttribute('data-special');
+    if (cmd) {
+      document.execCommand(cmd, false, null);
+    } else if (block) {
+      document.execCommand('formatBlock', false, '<' + block + '>');
+    } else if (special === 'code') {
+      var sel = window.getSelection();
+      if (sel.rangeCount && !sel.isCollapsed) {
+        var range = sel.getRangeAt(0);
+        var code = document.createElement('code');
+        code.appendChild(range.extractContents());
+        range.insertNode(code);
+        sel.collapseToEnd();
+      }
+    }
+    editor.focus();
+    updateToolbarState();
+    notifyFlutter();
+  });
+
+  // Toolbar active state detection
+  function updateToolbarState() {
+    var btns = document.querySelectorAll('.tb-btn');
+    for (var i = 0; i < btns.length; i++) {
+      var btn = btns[i];
+      var cmd = btn.getAttribute('data-cmd');
+      var block = btn.getAttribute('data-block');
+      var active = false;
+      if (cmd && cmd !== 'insertHorizontalRule') {
+        try { active = document.queryCommandState(cmd); } catch(e) {}
+      } else if (block) {
+        try {
+          var val = document.queryCommandValue('formatBlock');
+          active = val.toUpperCase() === block;
+        } catch(e) {}
+      }
+      btn.classList.toggle('active', active);
+    }
+  }
+  editor.addEventListener('keyup', updateToolbarState);
+  editor.addEventListener('mouseup', updateToolbarState);
+
+  // Handle keyboard shortcuts
+  editor.addEventListener('keydown', function(e) {
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key === 'b') { e.preventDefault(); document.execCommand('bold'); notifyFlutter(); }
+      if (e.key === 'i') { e.preventDefault(); document.execCommand('italic'); notifyFlutter(); }
+      if (e.key === 'u') { e.preventDefault(); document.execCommand('underline'); notifyFlutter(); }
+      if (e.key === '/') { e.preventDefault(); toggleShortcuts(); }
+    }
+  });
+
+  // Flutter JS Bridge
+  window.setContent = function(html) {
+    editor.innerHTML = html ? sanitizeHTML(html) : '';
+    updatePlaceholder();
+    updateCharCount();
+  };
+
+  window.getContent = function() {
+    return editor.innerHTML;
+  };
+
+  window.setPlaceholder = function(text) {
+    editor.setAttribute('data-placeholder', text);
+  };
+
+  window.setDarkMode = function(isDark) {
+    document.documentElement.classList.toggle('dark', isDark);
+  };
+
+  // Focus editor on load + initial placeholder + char count
+  setTimeout(function() { editor.focus(); updatePlaceholder(); updateCharCount(); }, 100);
+})();
+</script>
+
+</body>
+</html>

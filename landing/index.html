@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>miniwiki — Private AI Personal Wiki</title>
+<meta name="description" content="Privacy-first personal wiki with on-device AI. No cloud. No account. No compromise.">
+<meta name="theme-color" content="#2E7353">
+<meta property="og:title" content="miniwiki — Private AI Personal Wiki">
+<meta property="og:description" content="Your notes stay on your device. AI runs locally. No cloud, no account, no compromise.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="logo.png">
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#2E7353;--green-dark:#225a3e;--green-light:#3d9970;--green-pale:#e6f5ed;
+  --dark:#1a1a1a;--gray:#6b7280;--gray-light:#9ca3af;--bg:#fafbf9;--white:#ffffff;
+  --radius:16px;--shadow:0 2px 16px rgba(0,0,0,.06);--shadow-hover:0 12px 32px rgba(46,115,83,.15);
+  --font:-apple-system,'Pretendard','Inter','Segoe UI',sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+body{font-family:var(--font);color:var(--dark);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--green);text-decoration:none}
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,251,249,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06)}
+nav .inner{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px}
+nav .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.2em;color:var(--dark)}
+nav .logo img{width:32px;height:32px;border-radius:8px}
+nav .nav-links{display:flex;align-items:center;gap:24px}
+nav .nav-links a{color:var(--gray);font-size:.9em;font-weight:500;transition:color .2s}
+nav .nav-links a:hover{color:var(--green)}
+.lang-switch{display:flex;gap:4px;background:#f0f0ee;border-radius:8px;padding:3px}
+.lang-switch button{border:none;background:transparent;padding:5px 10px;border-radius:6px;font-size:.8em;font-weight:600;cursor:pointer;color:var(--gray);transition:all .2s}
+.lang-switch button.active{background:var(--white);color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* Hero */
+.hero{text-align:center;padding:140px 24px 100px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 0%,var(--green-pale) 0%,transparent 70%);pointer-events:none}
+.hero .content{position:relative;z-index:1}
+.hero .logo-mark{width:96px;height:96px;border-radius:24px;margin-bottom:32px;box-shadow:0 8px 32px rgba(46,115,83,.2)}
+.hero .badge{display:inline-block;background:var(--green-pale);color:var(--green);padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;margin-bottom:24px}
+.hero h1{font-size:clamp(2.5em,6vw,4em);font-weight:800;color:var(--dark);margin-bottom:16px;letter-spacing:-1.5px;line-height:1.1}
+.hero h1 em{font-style:normal;color:var(--green)}
+.hero .tagline{font-size:clamp(1.1em,2.5vw,1.35em);color:var(--gray);margin-bottom:48px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.6}
+.hero .cta-group{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.hero .cta{display:inline-flex;align-items:center;gap:8px;padding:16px 36px;border-radius:12px;font-size:1.05em;font-weight:600;transition:all .25s}
+.hero .cta-primary{background:var(--green);color:white}
+.hero .cta-primary:hover{background:var(--green-dark);transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+.hero .cta-secondary{background:var(--white);color:var(--dark);border:1.5px solid #e0e0e0}
+.hero .cta-secondary:hover{border-color:var(--green);color:var(--green)}
+.hero .sub{margin-top:24px;font-size:.9em;color:var(--gray-light)}
+
+/* Features */
+.features{padding:100px 24px}
+.section-header{text-align:center;margin-bottom:64px}
+.section-header .label{display:inline-block;background:var(--green-pale);color:var(--green);padding:6px 16px;border-radius:20px;font-size:.85em;font-weight:600;margin-bottom:16px}
+.section-header h2{font-size:clamp(1.8em,4vw,2.5em);font-weight:800;letter-spacing:-.5px;margin-bottom:12px}
+.section-header p{color:var(--gray);font-size:1.1em;max-width:500px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;max-width:1120px;margin:0 auto}
+.card{background:var(--white);border-radius:var(--radius);padding:32px;border:1px solid #f0f0ee;transition:all .3s}
+.card:hover{border-color:var(--green-pale);box-shadow:var(--shadow-hover);transform:translateY(-4px)}
+.card .icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5em;margin-bottom:20px;background:var(--green-pale)}
+.card h3{font-size:1.15em;margin-bottom:8px;color:var(--dark);font-weight:700}
+.card p{color:var(--gray);font-size:.95em;line-height:1.7}
+
+/* Comparison */
+.compare{padding:100px 24px;background:var(--white)}
+.compare table{width:100%;border-collapse:separate;border-spacing:0;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);max-width:900px;margin:0 auto}
+.compare th{background:var(--green);color:white;padding:16px 20px;text-align:left;font-weight:600;font-size:.95em}
+.compare th.highlight{background:var(--green-dark)}
+.compare td{padding:14px 20px;border-bottom:1px solid #f0f0ee;font-size:.95em}
+.compare tr:last-child td{border-bottom:none}
+.compare tr:hover td{background:#f8faf8}
+.check{color:var(--green);font-weight:700}
+.cross{color:#d1d5db}
+
+/* Privacy / CTA */
+.privacy{padding:100px 24px;text-align:center;background:linear-gradient(180deg,var(--green-pale) 0%,var(--bg) 100%)}
+.privacy h2{font-size:clamp(1.8em,4vw,2.5em);font-weight:800;margin-bottom:16px;letter-spacing:-.5px}
+.privacy h2 em{font-style:normal;color:var(--green)}
+.privacy p{font-size:1.1em;color:var(--gray);margin-bottom:32px;max-width:600px;margin-left:auto;margin-right:auto}
+.stats{display:flex;justify-content:center;gap:64px;margin-top:48px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat .num{font-size:clamp(2em,5vw,3em);font-weight:800;color:var(--green);font-family:var(--mono)}
+.stat .label{color:var(--gray);font-size:.9em;margin-top:4px}
+
+/* Pricing */
+.pricing{padding:100px 24px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:960px;margin:0 auto}
+.plan{background:var(--white);border-radius:var(--radius);padding:36px;text-align:center;border:1.5px solid #f0f0ee;transition:all .3s;position:relative}
+.plan:hover{box-shadow:var(--shadow-hover)}
+.plan.featured{border-color:var(--green);box-shadow:var(--shadow-hover)}
+.plan.featured::before{content:attr(data-badge);position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:5px 18px;border-radius:20px;font-size:.75em;font-weight:700;letter-spacing:.5px}
+.plan .name{font-size:1em;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.plan .price{font-size:2.8em;font-weight:800;color:var(--dark);margin-bottom:4px}
+.plan .price span{font-size:.35em;color:var(--gray);font-weight:400}
+.plan .desc{font-size:.9em;color:var(--gray);margin-bottom:24px}
+.plan ul{list-style:none;text-align:left;margin-bottom:28px}
+.plan li{padding:8px 0;font-size:.92em;color:#555;display:flex;align-items:center;gap:8px}
+.plan li::before{content:'';display:inline-block;width:18px;height:18px;background:var(--green-pale);border-radius:50%;flex-shrink:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 11.5L3 8l1-1 2.5 2.5L11 5l1 1z' fill='%232E7353'/%3E%3C/svg%3E");background-size:16px;background-repeat:no-repeat;background-position:center}
+.plan .btn{display:inline-block;padding:14px 36px;border-radius:10px;font-weight:600;font-size:.95em;transition:all .25s;cursor:pointer;border:none}
+.plan .btn-primary{background:var(--green);color:white}
+.plan .btn-primary:hover{background:var(--green-dark);box-shadow:var(--shadow-hover)}
+.plan .btn-outline{background:transparent;border:2px solid var(--green);color:var(--green)}
+.plan .btn-outline:hover{background:var(--green);color:white}
+
+/* Footer */
+footer{padding:48px 24px;text-align:center;border-top:1px solid #f0f0ee}
+footer .logo{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:1.1em;margin-bottom:12px}
+footer .logo img{width:24px;height:24px;border-radius:6px}
+footer p{color:var(--gray-light);font-size:.85em;margin-top:6px}
+
+/* Hamburger */
+.hamburger{display:none;background:none;border:none;font-size:1.5em;cursor:pointer;color:var(--dark);padding:4px 8px}
+.mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(250,251,249,.98);backdrop-filter:blur(12px);flex-direction:column;padding:16px 24px;gap:12px;border-bottom:1px solid rgba(0,0,0,.06);z-index:99}
+.mobile-menu a{color:var(--gray);font-size:1em;font-weight:500;padding:8px 0}
+.mobile-menu.open{display:flex}
+
+/* Responsive */
+@media(max-width:768px){
+  nav .nav-links a:not(.lang-switch-wrap){display:none}
+  .hamburger{display:block}
+  .hero{padding:120px 20px 80px}
+  .grid{grid-template-columns:1fr}
+  .stats{gap:32px}
+  .compare table{font-size:.85em}
+  .compare th,.compare td{padding:10px 12px}
+}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.hero .content{animation:fadeUp .8s ease-out}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div class="inner">
+    <a href="#" class="logo"><img src="logo.png" alt="M">miniwiki</a>
+    <div class="nav-links">
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#compare" data-i18n="nav_compare">Compare</a>
+      <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+      <span class="lang-switch-wrap">
+        <div class="lang-switch">
+          <button onclick="setLang('ko')" id="btn-ko">KO</button>
+          <button onclick="setLang('en')" id="btn-en">EN</button>
+          <button onclick="setLang('ja')" id="btn-ja">JA</button>
+        </div>
+      </span>
+      <button class="hamburger" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu" onclick="toggleMenu()">&#9776;</button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu" role="navigation">
+  <a href="#features" onclick="closeMenu()" data-i18n="nav_features">Features</a>
+  <a href="#compare" onclick="closeMenu()" data-i18n="nav_compare">Compare</a>
+  <a href="#pricing" onclick="closeMenu()" data-i18n="nav_pricing">Pricing</a>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="content">
+    <img src="logo.png" alt="miniwiki" class="logo-mark">
+    <div class="badge" data-i18n="hero_badge">Open Source & Privacy First</div>
+    <h1 data-i18n="hero_title">Think privately.<br>Write <em>freely</em>.</h1>
+    <p class="tagline" data-i18n="hero_tagline">Your notes stay on your device. AI runs locally. No cloud, no account, no compromise.</p>
+    <div class="cta-group">
+      <a href="#pricing" class="cta cta-primary" data-i18n="hero_cta">Download Free</a>
+      <a href="https://github.com/nicejongwoo/miniwiki" class="cta cta-secondary" data-i18n="hero_github">GitHub</a>
+    </div>
+    <p class="sub" data-i18n="hero_sub">macOS / iOS / Android / Windows</p>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="label" data-i18n="features_label">Features</div>
+      <h2 data-i18n="features_title">Everything you need,<br>nothing you don't</h2>
+      <p data-i18n="features_subtitle">A privacy-first wiki that doesn't sacrifice capability.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">🔐</div>
+        <h3 data-i18n="f1_title">E2E Encryption</h3>
+        <p data-i18n="f1_desc">ChaCha20-Poly1305 encryption by default. Not an option — a guarantee. Even we can't read your data.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h3 data-i18n="f2_title">On-Device AI</h3>
+        <p data-i18n="f2_desc">A lightweight 1GB AI model runs directly on your phone. Auto-tagging, categorization, link suggestions — all without leaving your device.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✈️</div>
+        <h3 data-i18n="f3_title">100% Offline</h3>
+        <p data-i18n="f3_desc">Works perfectly without internet. On a plane, in the mountains, underground. No cloud dependency.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔗</div>
+        <h3 data-i18n="f4_title">Wiki Links & Backlinks</h3>
+        <p data-i18n="f4_desc">Connect notes with [[wikilinks]], build a knowledge graph with auto-backlinks, and auto-extract #hashtags.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚡</div>
+        <h3 data-i18n="f5_title">Instant Search</h3>
+        <p data-i18n="f5_desc">SQLite FTS5-powered full-text search. Find anything across 10,000+ notes in under a second.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📱</div>
+        <h3 data-i18n="f6_title">Cross-Platform Native</h3>
+        <p data-i18n="f6_desc">True native performance on iOS, Android, macOS, and Windows. Not Electron — real Flutter native.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section class="compare" id="compare">
+  <div class="container">
+    <div class="section-header">
+      <div class="label" data-i18n="compare_label">Comparison</div>
+      <h2 data-i18n="compare_title">How we stack up</h2>
+    </div>
+    <table>
+      <tr>
+        <th></th>
+        <th>Obsidian</th>
+        <th>Notion</th>
+        <th>Capacities</th>
+        <th class="highlight">miniwiki</th>
+      </tr>
+      <tr>
+        <td><strong data-i18n="cmp_offline">Offline</strong></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="cross">&#10005;</span></td>
+        <td><span class="cross">&#10005;</span></td>
+        <td><span class="check">&#10003;</span></td>
+      </tr>
+      <tr>
+        <td><strong data-i18n="cmp_ai">Built-in AI</strong></td>
+        <td><span class="cross">Plugin</span></td>
+        <td><span class="check">Cloud</span></td>
+        <td><span class="check">Cloud</span></td>
+        <td><span class="check"><strong>On-device</strong></span></td>
+      </tr>
+      <tr>
+        <td><strong data-i18n="cmp_e2e">E2E Encryption</strong></td>
+        <td>Sync only</td>
+        <td><span class="cross">&#10005;</span></td>
+        <td><span class="cross">Dropped</span></td>
+        <td><span class="check"><strong data-i18n="cmp_default">Default</strong></span></td>
+      </tr>
+      <tr>
+        <td><strong data-i18n="cmp_account">No Account</strong></td>
+        <td><span class="check">&#10003;</span></td>
+        <td><span class="cross">&#10005;</span></td>
+        <td><span class="cross">&#10005;</span></td>
+        <td><span class="check">&#10003;</span></td>
+      </tr>
+      <tr>
+        <td><strong data-i18n="cmp_data">Your Data</strong></td>
+        <td data-i18n="cmp_local">Local files</td>
+        <td data-i18n="cmp_their_cloud">Their cloud</td>
+        <td data-i18n="cmp_their_cloud2">Their cloud</td>
+        <td><strong data-i18n="cmp_device_only">Your device only</strong></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section class="privacy">
+  <div class="container">
+    <h2 data-i18n="privacy_title">Your knowledge.<br>Your device. <em>Your rules.</em></h2>
+    <p data-i18n="privacy_desc">miniwiki has no servers. Your notes are born on your device and live only there. AI also runs on your device, not the cloud.</p>
+    <div class="stats">
+      <div class="stat"><div class="num">0</div><div class="label" data-i18n="stat1">Data sent to servers</div></div>
+      <div class="stat"><div class="num">0</div><div class="label" data-i18n="stat2">Accounts required</div></div>
+      <div class="stat"><div class="num">100%</div><div class="label" data-i18n="stat3">Offline capable</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-header">
+      <div class="label" data-i18n="pricing_label">Pricing</div>
+      <h2 data-i18n="pricing_title">Simple, honest pricing</h2>
+      <p data-i18n="pricing_subtitle">Start free. Upgrade when you need sync.</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <div class="name">Free</div>
+        <div class="price">$0</div>
+        <div class="desc" data-i18n="free_desc">Free forever</div>
+        <ul>
+          <li data-i18n="free_1">Unlimited notes</li>
+          <li data-i18n="free_2">AI auto-tagging</li>
+          <li data-i18n="free_3">E2E encryption</li>
+          <li data-i18n="free_4">Full-text search</li>
+          <li data-i18n="free_5">Wikilinks & backlinks</li>
+        </ul>
+        <a href="#" class="btn btn-outline" data-i18n="free_cta">Download Free</a>
+      </div>
+      <div class="plan featured" data-badge="POPULAR">
+        <div class="name">Pro</div>
+        <div class="price">$4.99<span>/mo</span></div>
+        <div class="desc" data-i18n="pro_desc">For power users</div>
+        <ul>
+          <li data-i18n="pro_1">Everything in Free</li>
+          <li data-i18n="pro_2">P2P device sync</li>
+          <li data-i18n="pro_3">Advanced AI model (7B)</li>
+          <li data-i18n="pro_4">Priority support</li>
+        </ul>
+        <a href="#" class="btn btn-primary" data-i18n="pro_cta">Start Pro</a>
+      </div>
+      <div class="plan">
+        <div class="name">Lifetime</div>
+        <div class="price">$89</div>
+        <div class="desc" data-i18n="life_desc">Pay once, own forever</div>
+        <ul>
+          <li data-i18n="life_1">All Pro features</li>
+          <li data-i18n="life_2">Perpetual license</li>
+          <li data-i18n="life_3">All future updates</li>
+        </ul>
+        <a href="#" class="btn btn-outline" data-i18n="life_cta">Buy Lifetime</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="logo"><img src="logo.png" alt="M">miniwiki</div>
+  <p data-i18n="footer1">Privacy-first personal wiki</p>
+  <p data-i18n="footer2">No tracking. No analytics. No BS.</p>
+  <p style="margin-top:12px">&copy; 2026 miniwiki</p>
+</footer>
+
+<script>
+const i18n = {
+  ko: {
+    nav_features: "Features", nav_compare: "Compare", nav_pricing: "Pricing",
+    hero_badge: "Open Source & Privacy First",
+    hero_title: "나만의 공간에서<br>자유롭게 <em>생각하다</em>.",
+    hero_tagline: "노트는 내 기기에. AI도 내 기기에서. 클라우드 없이, 계정 없이, 타협 없이.",
+    hero_cta: "무료 다운로드", hero_github: "GitHub", hero_sub: "macOS / iOS / Android / Windows",
+    features_label: "주요 기능", features_title: "필요한 것만.<br>군더더기 없이.",
+    features_subtitle: "기능을 포기하지 않는 프라이버시 위키.",
+    f1_title: "E2E 암호화", f1_desc: "ChaCha20-Poly1305 기본 암호화. 옵션이 아닌 보장. 우리조차 당신의 데이터를 읽을 수 없습니다.",
+    f2_title: "On-Device AI", f2_desc: "1GB 경량 AI가 폰에서 직접 실행. 자동 태깅, 분류, 연결 제안 — 데이터가 기기를 떠나지 않습니다.",
+    f3_title: "100% 오프라인", f3_desc: "인터넷 없이 완벽하게 동작합니다. 비행기 안에서도, 산속에서도, 지하에서도.",
+    f4_title: "위키링크 & 백링크", f4_desc: "[[위키링크]]로 노트를 연결하고, 자동 백링크로 지식 그래프를 구축. #해시태그 자동 추출.",
+    f5_title: "즉시 검색", f5_desc: "SQLite FTS5 전문검색. 10,000개 이상의 노트에서 1초 이내 검색.",
+    f6_title: "크로스 플랫폼", f6_desc: "iOS, Android, macOS, Windows 네이티브. Electron이 아닌 진짜 Flutter 네이티브 성능.",
+    compare_label: "비교", compare_title: "경쟁 제품과 비교",
+    cmp_offline: "오프라인", cmp_ai: "내장 AI", cmp_e2e: "E2E 암호화", cmp_account: "계정 불필요", cmp_data: "데이터 위치",
+    cmp_default: "기본값", cmp_local: "로컬 파일", cmp_their_cloud: "회사 클라우드", cmp_their_cloud2: "회사 클라우드", cmp_device_only: "내 기기에만",
+    privacy_title: "내 지식.<br>내 기기. <em>내 규칙.</em>",
+    privacy_desc: "miniwiki에는 서버가 없습니다. 노트는 내 기기에서 태어나고, 내 기기에서만 존재합니다. AI도 클라우드가 아닌 내 기기에서 실행됩니다.",
+    stat1: "서버 전송 데이터", stat2: "필요한 계정", stat3: "오프라인 동작",
+    pricing_label: "가격", pricing_title: "심플하고 정직한 가격",
+    pricing_subtitle: "무료로 시작. 동기화가 필요할 때 업그레이드.",
+    free_desc: "영원히 무료", free_1: "무제한 노트", free_2: "AI 자동 태깅", free_3: "E2E 암호화", free_4: "전문 검색", free_5: "위키링크 & 백링크", free_cta: "무료 다운로드",
+    pro_desc: "파워유저를 위해", pro_1: "Free 전체 포함", pro_2: "P2P 디바이스 동기화", pro_3: "고급 AI 모델 (7B)", pro_4: "우선 지원", pro_cta: "Pro 시작하기",
+    life_desc: "한 번 결제, 영구 소유", life_1: "Pro 전체 기능", life_2: "영구 라이선스", life_3: "모든 향후 업데이트", life_cta: "Lifetime 구매",
+    footer1: "프라이버시 퍼스트 개인 위키", footer2: "추적 없음. 분석 없음. 허튼소리 없음."
+  },
+  en: {
+    nav_features: "Features", nav_compare: "Compare", nav_pricing: "Pricing",
+    hero_badge: "Open Source & Privacy First",
+    hero_title: "Think privately.<br>Write <em>freely</em>.",
+    hero_tagline: "Your notes stay on your device. AI runs locally. No cloud, no account, no compromise.",
+    hero_cta: "Download Free", hero_github: "GitHub", hero_sub: "macOS / iOS / Android / Windows",
+    features_label: "Features", features_title: "Everything you need,<br>nothing you don't",
+    features_subtitle: "A privacy-first wiki that doesn't sacrifice capability.",
+    f1_title: "E2E Encryption", f1_desc: "ChaCha20-Poly1305 encryption by default. Not an option — a guarantee. Even we can't read your data.",
+    f2_title: "On-Device AI", f2_desc: "A lightweight 1GB AI model runs directly on your phone. Auto-tagging, categorization, link suggestions — all without leaving your device.",
+    f3_title: "100% Offline", f3_desc: "Works perfectly without internet. On a plane, in the mountains, underground. No cloud dependency.",
+    f4_title: "Wiki Links & Backlinks", f4_desc: "Connect notes with [[wikilinks]], build a knowledge graph with auto-backlinks, and auto-extract #hashtags.",
+    f5_title: "Instant Search", f5_desc: "SQLite FTS5-powered full-text search. Find anything across 10,000+ notes in under a second.",
+    f6_title: "Cross-Platform Native", f6_desc: "True native performance on iOS, Android, macOS, and Windows. Not Electron — real Flutter native.",
+    compare_label: "Comparison", compare_title: "How we stack up",
+    cmp_offline: "Offline", cmp_ai: "Built-in AI", cmp_e2e: "E2E Encryption", cmp_account: "No Account", cmp_data: "Your Data",
+    cmp_default: "Default", cmp_local: "Local files", cmp_their_cloud: "Their cloud", cmp_their_cloud2: "Their cloud", cmp_device_only: "Your device only",
+    privacy_title: "Your knowledge.<br>Your device. <em>Your rules.</em>",
+    privacy_desc: "miniwiki has no servers. Your notes are born on your device and live only there. AI also runs on your device, not the cloud.",
+    stat1: "Data sent to servers", stat2: "Accounts required", stat3: "Offline capable",
+    pricing_label: "Pricing", pricing_title: "Simple, honest pricing",
+    pricing_subtitle: "Start free. Upgrade when you need sync.",
+    free_desc: "Free forever", free_1: "Unlimited notes", free_2: "AI auto-tagging", free_3: "E2E encryption", free_4: "Full-text search", free_5: "Wikilinks & backlinks", free_cta: "Download Free",
+    pro_desc: "For power users", pro_1: "Everything in Free", pro_2: "P2P device sync", pro_3: "Advanced AI model (7B)", pro_4: "Priority support", pro_cta: "Start Pro",
+    life_desc: "Pay once, own forever", life_1: "All Pro features", life_2: "Perpetual license", life_3: "All future updates", life_cta: "Buy Lifetime",
+    footer1: "Privacy-first personal wiki", footer2: "No tracking. No analytics. No BS."
+  },
+  ja: {
+    nav_features: "Features", nav_compare: "Compare", nav_pricing: "Pricing",
+    hero_badge: "Open Source & Privacy First",
+    hero_title: "プライベートに考える。<br><em>自由に</em>書く。",
+    hero_tagline: "ノートはデバイスに。AIもローカルで。クラウドなし、アカウントなし、妥協なし。",
+    hero_cta: "無料ダウンロード", hero_github: "GitHub", hero_sub: "macOS / iOS / Android / Windows",
+    features_label: "主な機能", features_title: "必要なものだけ。<br>無駄なものはなし。",
+    features_subtitle: "機能を犠牲にしないプライバシーファーストのウィキ。",
+    f1_title: "E2E暗号化", f1_desc: "ChaCha20-Poly1305によるデフォルト暗号化。オプションではなく保証。私たちでもデータを読めません。",
+    f2_title: "On-Device AI", f2_desc: "1GBの軽量AIがスマホで直接動作。自動タグ付け、分類、リンク提案 — データはデバイスから出ません。",
+    f3_title: "100%オフライン", f3_desc: "インターネットなしで完璧に動作。飛行機の中でも、山の中でも、地下でも。",
+    f4_title: "ウィキリンク & バックリンク", f4_desc: "[[ウィキリンク]]でノートを繋ぎ、自動バックリンクでナレッジグラフを構築。#ハッシュタグも自動抽出。",
+    f5_title: "高速検索", f5_desc: "SQLite FTS5による全文検索。10,000件以上のノートを1秒以内に検索。",
+    f6_title: "クロスプラットフォーム", f6_desc: "iOS、Android、macOS、Windowsのネイティブ対応。Electronではない本物のFlutterネイティブ。",
+    compare_label: "比較", compare_title: "競合との比較",
+    cmp_offline: "オフライン", cmp_ai: "内蔵AI", cmp_e2e: "E2E暗号化", cmp_account: "アカウント不要", cmp_data: "データの場所",
+    cmp_default: "デフォルト", cmp_local: "ローカル", cmp_their_cloud: "企業クラウド", cmp_their_cloud2: "企業クラウド", cmp_device_only: "自分のデバイスのみ",
+    privacy_title: "自分の知識。<br>自分のデバイス。<em>自分のルール。</em>",
+    privacy_desc: "miniwikiにはサーバーがありません。ノートはデバイスで生まれ、デバイスにだけ存在します。AIもクラウドではなくデバイスで実行されます。",
+    stat1: "サーバー送信データ", stat2: "必要なアカウント", stat3: "オフライン対応",
+    pricing_label: "料金", pricing_title: "シンプルで正直な料金",
+    pricing_subtitle: "無料で開始。同期が必要な時にアップグレード。",
+    free_desc: "永久無料", free_1: "無制限ノート", free_2: "AI自動タグ", free_3: "E2E暗号化", free_4: "全文検索", free_5: "ウィキリンク & バックリンク", free_cta: "無料ダウンロード",
+    pro_desc: "パワーユーザー向け", pro_1: "Free全機能含む", pro_2: "P2Pデバイス同期", pro_3: "高度AIモデル (7B)", pro_4: "優先サポート", pro_cta: "Pro開始",
+    life_desc: "一回払い、永久所有", life_1: "Pro全機能", life_2: "永久ライセンス", life_3: "全ての将来アップデート", life_cta: "Lifetime購入",
+    footer1: "プライバシーファースト個人ウィキ", footer2: "追跡なし。分析なし。嘘なし。"
+  }
+};
+
+function setLang(lang) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang] && i18n[lang][key]) el.innerHTML = i18n[lang][key];
+  });
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + lang).classList.add('active');
+  document.documentElement.lang = lang;
+  localStorage.setItem('mw-lang', lang);
+}
+
+// init
+const saved = localStorage.getItem('mw-lang') || navigator.language.slice(0,2);
+const initLang = ['ko','en','ja'].includes(saved) ? saved : 'en';
+setLang(initLang);
+
+// mobile menu
+function toggleMenu() {
+  var menu = document.getElementById('mobile-menu');
+  var btn = document.querySelector('.hamburger');
+  var open = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+}
+function closeMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.querySelector('.hamburger').setAttribute('aria-expanded', 'false');
+}
+window.toggleMenu = toggleMenu;
+window.closeMenu = closeMenu;
+
+// smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); }
+  });
+});
+</script>
+
+</body>
+</html>

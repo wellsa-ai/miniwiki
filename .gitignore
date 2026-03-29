@@ -1,0 +1,48 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+*.dmg
+
+# Logs
+*.log
+
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# Assets (large model files)
+assets/models/*.gguf
+
+# Environment
+.env
+.env.local
+
+# Pods (iOS/macOS)
+ios/Pods/
+macos/Pods/
+
+# Generated (macOS)
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Podfile.lock
+
+# Android
+android/.gradle/
+android/local.properties
+
+# Private / Internal
+CLAUDE.md
+coverage/
+docs/

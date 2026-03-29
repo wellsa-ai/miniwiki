@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions & Questions
+    url: https://github.com/wellsa-ai/miniwiki/discussions
+    about: Ask questions, share ideas, and get help from the community
+  - name: 🔐 Security Issues
+    url: https://github.com/wellsa-ai/miniwiki/security/advisories
+    about: Report security vulnerabilities responsibly (see SECURITY.md)
+  - name: 📚 Documentation
+    url: https://github.com/wellsa-ai/miniwiki#-documentation
+    about: View project documentation and guides
