@@ -22,9 +22,7 @@
 | 라우팅 | GoRouter (상태 기반 리다이렉트) |
 | DB | drift ORM + SQLite3MultipleCiphers |
 | 검색 | FTS5 (unicode61 토크나이저) + 쿼리 sanitization |
-| 보안 | SHA-256 비밀번호 검증 + SecureStorage + PRAGMA rekey |
-| AI | Qwen2.5-1.5B-Instruct via llama.cpp FFI (향후) |
-| 동기화 | CRDT + Bonjour/mDNS (향후) |
+| 보안 | HMAC-SHA256 (100K iterations) + SecureStorage + PRAGMA rekey |
 
 ## 프로젝트 구조
 
@@ -37,7 +35,6 @@ lib/
     │   └── theme.dart                     # Material 3 테마 (#2E7353)
     ├── core/
     │   ├── providers/app_providers.dart   # 앱 초기화, 인증, DB 키 관리
-    │   ├── ai/                           # llama.cpp FFI, AI 프롬프트
     │   └── database/
     │       ├── database.dart             # drift 스키마 + 마이그레이션
     │       ├── connection.dart           # 암호화 DB 연결
@@ -50,11 +47,10 @@ lib/
         │   ├── widgets/backlinks_panel.dart # 백링크 패널
         │   └── utils/
         │       ├── wikilink_parser.dart  # [[wikilink]] + #hashtag 파서
-        │       └── content_converter.dart # AppFlowy JSON/HTML/PlainText 변환
+        │       └── content_converter.dart # HTML/PlainText 변환
         ├── notes/                        # 노트 목록, CRUD
         ├── search/                       # FTS5 전문검색
-        ├── settings/                     # 앱 설정, 비밀번호 관리
-        └── ai/                           # AI 자동 태깅
+        └── settings/                     # 앱 설정, 비밀번호 관리
 
 assets/editor/editor.html                 # 에디터 (contenteditable + 툴바 + 단축키)
 landing/index.html                        # 랜딩페이지 (KO/EN/JA 다국어)
@@ -72,8 +68,8 @@ Xcode 15+ (macOS/iOS 빌드)
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 
-# 테스트 (51 tests)
-flutter test
+# 테스트
+flutter test    # 54 tests
 
 # 실행
 flutter run -d macos
@@ -82,14 +78,15 @@ flutter run -d macos
 ## 테스트 현황
 
 ```
-51 tests, 0 failures
+54 tests, 0 failures
 
-├── database_test.dart (24)
+├── database_test.dart (27)
 │   ├── Notes CRUD (6): insert, retrieve, soft delete, permanent delete, update, partial update
 │   ├── FTS5 Search (6): title/content 검색, 삭제 노트 제외, 업데이트 후 검색
 │   ├── Tags (6): CRUD, 다대다 관계, 중복 방지, confidence/isManual
 │   ├── Links (4): wikilink, backlinks, upsert, 다중 링크 타입
-│   └── Streams (1): watchAllNotes 반응성
+│   ├── Streams (1): watchAllNotes 반응성
+│   └── Data Integrity (3): 데이터 무결성, soft delete 보존, 동시 작업 일관성
 ├── wikilink_parser_test.dart (13)
 │   ├── extractWikilinks (5): 단일/복수, 한국어, 공백 트림
 │   ├── extractHashtags (6): 단일/복수, 한국어, 하이픈/언더스코어
@@ -102,7 +99,7 @@ flutter run -d macos
 └── widget_test.dart (1)
 ```
 
-## 에디터 기능
+## 에디터 단축키
 
 | 기능 | 단축키 |
 |------|--------|
@@ -115,21 +112,16 @@ flutter run -d macos
 | 붙여넣기 | plain text 자동 변환 |
 | 툴바 | B, I, U, S, H1-H3, 리스트, 인용, 코드, 수평선 |
 
-## 문서
+## 로드맵
 
-| 문서 | 경로 |
-|------|------|
-| PRD | `docs/01_요구사항/PRD.md` |
-| 리서치 종합 | `docs/02_리서치/00_종합리포트.md` |
-| 제품 전략 | `docs/03_전략/01_제품전략.md` |
-| 시스템 아키텍처 | `docs/04_아키텍처/01_시스템_아키텍처.md` |
-| 야간 AI 개선회의 | `docs/05_회의록/2026-03-28_야간_AI_개선회의.md` |
-| 랜딩페이지 | `landing/index.html` (한/영/일 다국어) |
+- **v0.3**: 온디바이스 AI (자동 태깅/분류), 암호화 백업
+- **v0.4**: P2P 동기화 (CRDT + Bonjour/mDNS)
+- **v1.0**: 멀티플랫폼 정식 출시
 
-## Known Issues (v0.2에서 해결 예정)
+## Known Issues
 
-- **DB hex 키 인코딩**: base64 문자열의 codeUnits를 hex로 변환 (실제 바이트와 다름). 기존 DB 호환성 때문에 마이그레이션과 함께 수정.
-- **노트 리스트 성능**: 전체 리스트 리빌드 → 개별 타일 리빌드 최적화 (Provider 구조 변경)
+- **DB hex 키 인코딩**: base64 → hex 변환 방식 개선 필요 (마이그레이션 동반)
+- **노트 리스트 성능**: 개별 타일 리빌드 최적화 (Provider 구조 변경)
 
 ## 라이선스
 
