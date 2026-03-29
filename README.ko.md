@@ -135,7 +135,3 @@ flutter run -d macos
 ## 라이선스
 
 MIT License — [자세히 보기](LICENSE)
-
----
-
-**프로젝트**: miniwiki | **시작일**: 2026-03-27 | **팀**: 마마 + 미니 | **목표**: 3개월 MVP
