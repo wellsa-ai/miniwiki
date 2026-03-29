@@ -1,3 +1,5 @@
+[English](README.md) | [한국어](README.ko.md)
+
 # miniwiki
 
 데이터 주권형 개인 위키 플랫폼 — 온디바이스 AI, E2E 암호화, 완전 오프라인

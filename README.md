@@ -1,3 +1,5 @@
+[English](README.md) | [한국어](README.ko.md)
+
 # miniwiki
 
 **Privacy-first personal wiki** — 100% offline, end-to-end encrypted, on-device AI
@@ -5,7 +7,7 @@
 [![GitHub Release](https://img.shields.io/badge/release-v0.2-green)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 [![Flutter](https://img.shields.io/badge/Flutter-3.41-blue?logo=flutter)](#)
-[![Tests](https://img.shields.io/badge/Tests-51%2F51-brightgreen)](#test-coverage)
+[![Tests](https://img.shields.io/badge/Tests-54%2F54-brightgreen)](#test-coverage)
 
 > Your notes, your device, your rules. No cloud. No tracking. No compromises.
 
