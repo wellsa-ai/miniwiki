@@ -194,4 +194,10 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 Made with care by [wellsa.ai](https://github.com/wellsa-ai)
 
+---
+
+**If MiniWiki is useful to you, please ⭐ star this repo — it helps others find it!**
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wellsa-ai/miniwiki&type=Date)](https://star-history.com/#wellsa-ai/miniwiki&Date)
+
 </div>
