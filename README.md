@@ -2,7 +2,7 @@
 
 # miniwiki
 
-**Privacy-first personal wiki** — 100% offline, end-to-end encrypted, on-device AI
+**Privacy-first personal wiki** — 100% offline, end-to-end encrypted
 
 [![GitHub Release](https://img.shields.io/badge/release-v0.2-green)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
@@ -17,7 +17,6 @@
 
 - **100% Offline**: Works without internet. Zero cloud transmission. Complete data sovereignty.
 - **E2E Encryption**: SQLite3MultipleCiphers (ChaCha20-Poly1305) by default. Password-protected.
-- **On-Device AI**: Qwen2.5-1.5B based auto-tagging & classification (forthcoming)
 - **Wikilinks**: `[[link]]` syntax for note connections, auto-generated backlinks
 - **Cross-Platform**: iOS, Android, macOS via Flutter
 - **Perfect Korean Support**: Native IME via WKWebView for flawless input
