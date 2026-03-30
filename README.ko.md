@@ -118,11 +118,6 @@ flutter run -d macos
 - **v0.4**: P2P 동기화 (CRDT + Bonjour/mDNS)
 - **v1.0**: 멀티플랫폼 정식 출시
 
-## Known Issues
-
-- **DB hex 키 인코딩**: base64 → hex 변환 방식 개선 필요 (마이그레이션 동반)
-- **노트 리스트 성능**: 개별 타일 리빌드 최적화 (Provider 구조 변경)
-
 ## 라이선스
 
 MIT License — [자세히 보기](LICENSE)
