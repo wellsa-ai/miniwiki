@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -33,8 +34,12 @@ LazyDatabase _openConnection(String key) {
           // SQLite3MultipleCiphers: PRAGMA key activates encryption
           // Default cipher: chacha20 (ChaCha20-Poly1305)
           // Default KDF: sqleet (legacy) — for Argon2id, set cipher_kdf
-          // Use hex key format to avoid any escaping issues
-          final hexKey = key.codeUnits.map((c) => c.toRadixString(16).padLeft(2, '0')).join();
+          // Decode base64 key to actual bytes, then convert to hex
+          // Must match the encoding in app_providers.dart setPassword()
+          final decodedKey = base64Url.decode(key);
+          final hexKey = decodedKey
+              .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+              .join();
           db.execute("PRAGMA key = \"x'$hexKey'\"");
 
           // Verify encryption is working by reading a page

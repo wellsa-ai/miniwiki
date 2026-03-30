@@ -17,7 +17,9 @@ final notesSortProvider =
 
 final notesFilterTagProvider = StateProvider<String?>((ref) => null);
 
-final filteredNotesProvider = Provider<AsyncValue<List<Note>>>((ref) {
+/// Returns sorted/filtered note ID list only — individual tiles subscribe
+/// to their own note via [noteByIdProvider], so only the changed tile rebuilds.
+final filteredNoteIdsProvider = Provider<AsyncValue<List<String>>>((ref) {
   final sortOrder = ref.watch(notesSortProvider);
   final filterTag = ref.watch(notesFilterTagProvider);
   final notesAsync = ref.watch(notesStreamProvider);
@@ -25,7 +27,6 @@ final filteredNotesProvider = Provider<AsyncValue<List<Note>>>((ref) {
   return notesAsync.whenData((notes) {
     var result = List<Note>.from(notes);
 
-    // TODO: tag filtering requires join — for now filter by category
     if (filterTag != null) {
       result = result.where((n) => n.category == filterTag).toList();
     }
@@ -42,7 +43,7 @@ final filteredNotesProvider = Provider<AsyncValue<List<Note>>>((ref) {
         result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
 
-    return result;
+    return result.map((n) => n.id).toList();
   });
 });
 
@@ -55,7 +56,7 @@ class NotesListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notesAsync = ref.watch(filteredNotesProvider);
+    final noteIdsAsync = ref.watch(filteredNoteIdsProvider);
     final noteCount = ref.watch(notesCountProvider);
 
     return Scaffold(
@@ -90,7 +91,7 @@ class NotesListPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: notesAsync.when(
+      body: noteIdsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
           child: Column(
@@ -107,8 +108,8 @@ class NotesListPage extends ConsumerWidget {
             ],
           ),
         ),
-        data: (notes) {
-          if (notes.isEmpty) {
+        data: (noteIds) {
+          if (noteIds.isEmpty) {
             return _EmptyState(onCreateNote: () => _createNote(context, ref));
           }
 
@@ -116,13 +117,11 @@ class NotesListPage extends ConsumerWidget {
             onRefresh: () async => ref.invalidate(notesStreamProvider),
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: notes.length,
+              itemCount: noteIds.length,
               separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
-              itemBuilder: (context, index) => _NoteListTile(
-                note: notes[index],
-                onTap: () => context.push('/note/${notes[index].id}'),
-                onDelete: () => _deleteNote(context, ref, notes[index]),
-                cachedPreview: _NoteListTile.computePreview(notes[index].content),
+              itemBuilder: (context, index) => _NoteListTileById(
+                noteId: noteIds[index],
+                onDelete: (note) => _deleteNote(context, ref, note),
               ),
             ),
           );
@@ -241,6 +240,34 @@ class _EmptyState extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Each tile subscribes to its own note via [noteByIdProvider].
+/// Only rebuilds when THIS specific note changes, not the entire list.
+class _NoteListTileById extends ConsumerWidget {
+  final String noteId;
+  final void Function(Note note) onDelete;
+
+  const _NoteListTileById({required this.noteId, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final noteAsync = ref.watch(noteByIdProvider(noteId));
+
+    return noteAsync.when(
+      loading: () => const ListTile(title: Text('Loading...')),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (note) {
+        if (note == null) return const SizedBox.shrink();
+        return _NoteListTile(
+          note: note,
+          onTap: () => context.push('/note/${note.id}'),
+          onDelete: () => onDelete(note),
+          cachedPreview: _NoteListTile.computePreview(note.content),
+        );
+      },
     );
   }
 }
