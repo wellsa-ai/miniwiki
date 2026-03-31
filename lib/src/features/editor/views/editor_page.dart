@@ -50,10 +50,11 @@ class _EditorPageState extends ConsumerState<EditorPage> {
         // Use contentBlocks if HTML, extract text from AppFlowy JSON, or use plain content
         if (note.contentBlocks != null && note.contentBlocks!.isNotEmpty) {
           final blocks = note.contentBlocks!;
-          if (blocks.startsWith('<')) {
-            _initialContent = blocks;
-          } else if (blocks.startsWith('{')) {
+          if (blocks.startsWith('{')) {
             _initialContent = appflowyJsonToHtml(blocks);
+          } else {
+            // HTML content (may or may not start with a tag)
+            _initialContent = blocks;
           }
         }
         if (_initialContent.isEmpty && note.content.isNotEmpty) {

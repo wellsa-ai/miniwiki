@@ -59,6 +59,18 @@ void main() {
       expect(htmlToPlainText('<p>Hello <strong>World</strong></p>'), 'Hello World');
     });
 
+    test('preserves line breaks between block elements', () {
+      expect(htmlToPlainText('<p>Line 1</p><p>Line 2</p>'), 'Line 1\nLine 2');
+      expect(htmlToPlainText('<div>A</div><div>B</div>'), 'A\nB');
+      expect(htmlToPlainText('Hello<br>World'), 'Hello\nWorld');
+      expect(htmlToPlainText('<h1>Title</h1><p>Body</p>'), 'Title\nBody');
+    });
+
+    test('handles mixed content from contenteditable', () {
+      // WebKit contenteditable: first line is bare text, subsequent in divs
+      expect(htmlToPlainText('Hello<div>World</div>'), 'Hello\nWorld');
+    });
+
     test('decodes entities', () {
       expect(htmlToPlainText('&lt;script&gt;'), '<script>');
       expect(htmlToPlainText('&amp;'), '&');

@@ -34,12 +34,16 @@ String plainTextToHtml(String text) {
 /// Strip HTML tags and decode entities to plain text.
 String htmlToPlainText(String html) {
   return html
+      .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+      .replaceAll(RegExp(r'</?(p|div|li|h[1-6]|blockquote)[^>]*>', caseSensitive: false), '\n')
       .replaceAll(RegExp(r'<[^>]*>'), '')
       .replaceAll('&amp;', '&')
       .replaceAll('&lt;', '<')
       .replaceAll('&gt;', '>')
       .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'");
+      .replaceAll('&#39;', "'")
+      .replaceAll(RegExp(r'\n{2,}'), '\n')
+      .trim();
 }
 
 /// Escape HTML special characters.
